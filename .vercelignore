@@ -1,5 +1,6 @@
-api/src/routes/**
+# Only ignore test files, not the actual route files
 api/src/tests/**
-api/src/workers/**
 api/tests/**
+*.test.ts
+*.test.js
 
