@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { uuidv4 } from '../utils/uuid';
 
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const requestId = req.header('x-request-id') ?? uuidv4();

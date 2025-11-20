@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { createHmac } from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+import { uuidv4 } from '../utils/uuid';
 import { query, Reservation, CheckoutSession, Order, Ticket, getClient } from '../db';
 import { rateLimit } from '../utils/rateLimiter';
 import { metrics } from '../metrics';

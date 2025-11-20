@@ -90,11 +90,37 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
-  return pool.query<T>(text, params);
+  try {
+    return await pool.query<T>(text, params);
+  } catch (error: any) {
+    // Log connection errors for debugging
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      console.error('Database connection error:', {
+        code: error.code,
+        message: error.message,
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || '5432',
+      });
+    }
+    throw error;
+  }
 }
 
 export async function getClient() {
-  return pool.connect();
+  try {
+    return await pool.connect();
+  } catch (error: any) {
+    // Log connection errors for debugging
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      console.error('Database connection error (getClient):', {
+        code: error.code,
+        message: error.message,
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || '5432',
+      });
+    }
+    throw error;
+  }
 }
 
 export default pool;

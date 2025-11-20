@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { uuidv4 } from '../utils/uuid';
 import { query, Event } from '../db';
 import redis from '../redis';
 import { metrics } from '../metrics';

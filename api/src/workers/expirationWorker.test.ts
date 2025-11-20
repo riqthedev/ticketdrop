@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { query, getClient } from '../db';
 import { runExpirationWorker } from './expirationWorker';
-import { v4 as uuidv4 } from 'uuid';
+import { uuidv4 } from '../utils/uuid';
 
 // Note: These tests require a running database and Redis instance
 // Run with: npm test (after setting up test environment)

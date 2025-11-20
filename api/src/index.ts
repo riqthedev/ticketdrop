@@ -13,6 +13,26 @@ import { requestLogger } from './middleware/requestLogger';
 import { startExpirationWorker } from './workers/expirationWorker';
 import { appConfig } from './config';
 
+// Global error handlers for serverless environments
+// These prevent FUNCTION_INVOCATION_FAILED errors from unhandled rejections
+process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Log the error but don't crash - let Vercel handle it gracefully
+  if (reason instanceof Error) {
+    console.error('Error details:', {
+      message: reason.message,
+      stack: reason.stack,
+      name: reason.name,
+    });
+  }
+});
+
+process.on('uncaughtException', (error: Error) => {
+  console.error('Uncaught Exception:', error);
+  // In serverless, we should log and let the function complete
+  // The platform will handle restarting the function
+});
+
 const app = express();
 const PORT = appConfig.port;
 
@@ -51,6 +71,29 @@ app.use('/events', reservationsRouter);
 app.use('/checkout', checkoutRouter);
 app.use('/', ticketsRouter); // Mounted at root (for /me/tickets)
 app.use('/', metricsRouter);
+
+// Global error handler middleware (must be last)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Express error handler:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+  });
+  
+  // Don't expose internal error details in production
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error',
+    ...(isDevelopment && { details: err.stack }),
+  });
+});
+
+// 404 handler
+app.use((req: express.Request, res: express.Response) => {
+  res.status(404).json({ error: 'Not found', path: req.path });
+});
 
 // Only start server and worker if not in Vercel (serverless) environment
 if (process.env.VERCEL !== '1') {

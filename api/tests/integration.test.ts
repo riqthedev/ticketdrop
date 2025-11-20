@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { query, getClient } from '../src/db';
-import { v4 as uuidv4 } from 'uuid';
+import { uuidv4 } from '../src/utils/uuid';
 import express from 'express';
 import request from 'supertest';
 import reservationsRouter from '../src/routes/reservations';
