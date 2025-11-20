@@ -3,12 +3,11 @@
   "installCommand": "npm install --legacy-peer-deps; cd api && npm install --legacy-peer-deps; cd ../web && npm install --legacy-peer-deps",
   "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/dist",
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "src/**"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/health",
