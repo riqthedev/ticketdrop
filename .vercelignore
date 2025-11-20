@@ -1,0 +1,57 @@
+# Dependencies (installed during build)
+node_modules/
+api/node_modules/
+web/node_modules/
+
+# Build outputs (generated during build)
+dist/
+build/
+api/dist/
+web/dist/
+*.tsbuildinfo
+
+# Development files
+.env.local
+.env.development
+.env.*.local
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+tests-api/
+coverage/
+
+# Documentation (not needed for deployment)
+*.md
+!README.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (not needed for Vercel)
+docker-compose.yml
+Dockerfile
+
+# Git files
+.git/
+.gitignore
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+

@@ -43,17 +43,32 @@ app.use(cors({
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
+      // Local development
       'http://localhost:5173', 
       'http://localhost:3000', 
       'http://127.0.0.1:5173',
-      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+      // Vercel deployment URLs (production and preview)
+      // VERCEL_URL is set by Vercel and may or may not include protocol
+      process.env.VERCEL_URL 
+        ? (process.env.VERCEL_URL.startsWith('http') 
+            ? process.env.VERCEL_URL 
+            : `https://${process.env.VERCEL_URL}`)
+        : undefined,
+      // Custom frontend URL (for production domain)
       process.env.FRONTEND_URL,
     ].filter(Boolean) as string[];
     
-    // Allow all Vercel preview URLs
-    if (origin.includes('.vercel.app') || allowedOrigins.includes(origin)) {
+    // Normalize origin for comparison (remove trailing slash)
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
+    // Allow all Vercel preview URLs (covers preview deployments automatically)
+    // This includes: *.vercel.app domains for all branches and previews
+    // Examples: ticketdrop-phi.vercel.app, ticketdrop-git-main-*.vercel.app, etc.
+    if (normalizedOrigin.includes('.vercel.app') || 
+        allowedOrigins.some(allowed => normalizedOrigin === allowed.replace(/\/$/, ''))) {
       callback(null, true);
     } else {
+      console.warn(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
