@@ -10,7 +10,6 @@
     }
   ],
   "rewrites": [
-    // API routes - must come before catch-all to prevent frontend routing from intercepting
     {
       "source": "/health",
       "destination": "/api/index"
@@ -43,9 +42,6 @@
       "source": "/metrics",
       "destination": "/api/index"
     },
-    // Frontend SPA routing - catch-all for all non-API routes
-    // This serves index.html for the root path and all frontend routes
-    // Vercel will serve static files from outputDirectory (web/dist) automatically
     {
       "source": "/(.*)",
       "destination": "/index.html"
