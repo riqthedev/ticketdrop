@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd web && npm install && npm run build",
+  "installCommand": "cd api && npm install && cd ../web && npm install",
+  "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/dist",
   "builds": [
     {
@@ -10,7 +11,31 @@
   ],
   "rewrites": [
     {
-      "source": "/(health|events|checkout|admin|me|metrics)(.*)",
+      "source": "/health/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/events/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/checkout/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/me/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/me",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/metrics",
       "destination": "/api/index"
     },
     {
