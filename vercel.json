@@ -19,11 +19,23 @@
       "destination": "/api/index"
     },
     {
+      "source": "/events",
+      "destination": "/api/index"
+    },
+    {
       "source": "/events/(.*)",
       "destination": "/api/index"
     },
     {
+      "source": "/checkout",
+      "destination": "/api/index"
+    },
+    {
       "source": "/checkout/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/admin",
       "destination": "/api/index"
     },
     {

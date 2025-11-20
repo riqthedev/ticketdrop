@@ -77,6 +77,18 @@ app.use(cors({
 
 app.use(express.json());
 app.use(requestLogger);
+
+// Debug middleware to log all incoming requests (helpful for troubleshooting)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    url: req.url,
+    originalUrl: req.originalUrl,
+    baseUrl: req.baseUrl,
+    query: req.query,
+  });
+  next();
+});
+
 app.use('/health', healthRouter);
 app.use('/admin/events', eventsRouter);
 app.use('/admin/tiers', tiersRouter);
@@ -107,7 +119,17 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // 404 handler
 app.use((req: express.Request, res: express.Response) => {
-  res.status(404).json({ error: 'Not found', path: req.path });
+  console.warn(`404 Not Found: ${req.method} ${req.path}`, {
+    url: req.url,
+    originalUrl: req.originalUrl,
+    baseUrl: req.baseUrl,
+  });
+  res.status(404).json({ 
+    error: 'Not found', 
+    path: req.path,
+    method: req.method,
+    url: req.url,
+  });
 });
 
 // Only start server and worker if not in Vercel (serverless) environment
