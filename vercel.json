@@ -2,6 +2,12 @@
   "version": 2,
   "buildCommand": "cd web && npm install && npm run build",
   "outputDirectory": "web/dist",
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
   "rewrites": [
     {
       "source": "/(health|events|checkout|admin|me|metrics)(.*)",
