@@ -3,7 +3,6 @@ import { createHmac } from 'crypto';
 import { uuidv4 } from '../utils/uuid';
 import { query, Reservation, CheckoutSession, Order, Ticket, getClient } from '../db';
 import { rateLimit } from '../utils/rateLimiter';
-import { metrics } from '../metrics';
 
 const router = Router();
 
@@ -56,7 +55,6 @@ router.post('/sessions', async (req: Request, res: Response) => {
     const rateKey = `checkout:${userId}`;
     const { allowed, retryAfter } = await rateLimit(rateKey, 5, 60);
     if (!allowed) {
-      metrics.rateLimitHits.inc({ endpoint: 'checkout_sessions' });
       res.setHeader('Retry-After', retryAfter ?? 60);
       return res.status(429).json({ 
         error: 'rate_limited',
@@ -217,7 +215,6 @@ router.post('/sessions', async (req: Request, res: Response) => {
 
     const session = sessionResult.rows[0];
 
-    metrics.checkoutSessionsCreated.inc({ event_id: reservation.event_id });
 
     console.log(
       JSON.stringify({
@@ -377,7 +374,6 @@ router.post('/confirm', async (req: Request, res: Response) => {
       const { allowed, retryAfter } = await rateLimit(rateKey, 10, 60);
       if (!allowed) {
         await client.query('ROLLBACK');
-        metrics.rateLimitHits.inc({ endpoint: 'checkout_confirm' });
         res.setHeader('Retry-After', retryAfter ?? 60);
         return res.status(429).json({ 
           error: 'rate_limited',
@@ -508,7 +504,6 @@ router.post('/confirm', async (req: Request, res: Response) => {
       } finally {
         updateClient.release();
       }
-      metrics.reservationExpiredAtCheckout.inc({ event_id: session.event_id });
       return res.status(404).json({ 
         error: 'reservation_expired_or_invalid',
         message: 'Reservation not found'
@@ -538,7 +533,6 @@ router.post('/confirm', async (req: Request, res: Response) => {
       } finally {
         updateClient.release();
       }
-      metrics.reservationExpiredAtCheckout.inc({ event_id: session.event_id });
       console.log(
         JSON.stringify({
           level: 'warn',
@@ -572,7 +566,6 @@ router.post('/confirm', async (req: Request, res: Response) => {
       );
       await client.query('COMMIT');
       client.release();
-      metrics.reservationExpiredAtCheckout.inc({ event_id: session.event_id });
       console.log(
         JSON.stringify({
           level: 'warn',
@@ -692,8 +685,6 @@ router.post('/confirm', async (req: Request, res: Response) => {
 
       await client.query('COMMIT');
 
-      metrics.ordersCreated.inc({ event_id: session.event_id });
-      metrics.checkoutConfirmationsSuccess.inc({ event_id: session.event_id });
       console.log(
         JSON.stringify({
           level: 'info',
@@ -752,7 +743,6 @@ router.post('/confirm', async (req: Request, res: Response) => {
 
       await client.query('COMMIT');
 
-      metrics.checkoutConfirmationsFailed.inc({ event_id: session.event_id });
       console.log(
         JSON.stringify({
           level: 'info',

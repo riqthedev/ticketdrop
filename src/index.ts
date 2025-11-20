@@ -8,7 +8,6 @@ import waitingRoomRouter from './routes/waiting-room';
 import reservationsRouter from './routes/reservations';
 import checkoutRouter from './routes/checkout';
 import ticketsRouter from './routes/tickets';
-import metricsRouter from './routes/metrics';
 import { requestLogger } from './middleware/requestLogger';
 import { startExpirationWorker } from './workers/expirationWorker';
 import { appConfig } from './config';
@@ -97,7 +96,6 @@ app.use('/events', waitingRoomRouter);
 app.use('/events', reservationsRouter);
 app.use('/checkout', checkoutRouter);
 app.use('/', ticketsRouter); // Mounted at root (for /me/tickets)
-app.use('/', metricsRouter);
 
 // Global error handler middleware (must be last)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

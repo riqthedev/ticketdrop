@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { query, Event, TicketTier, Reservation, getClient } from '../db';
 import { rateLimit } from '../utils/rateLimiter';
-import { metrics } from '../metrics';
 import redis from '../redis';
 import { appConfig } from '../config';
 import { maybeAlertOversellSpike } from '../alerting';
@@ -51,8 +50,6 @@ router.post('/:id/reservations', async (req: Request, res: Response) => {
     const rateKey = `reservations:${id}:${userId}`;
     const { allowed, retryAfter } = await rateLimit(rateKey, 5, 60);
     if (!allowed) {
-      metrics.reservationRateLimited.inc({ event_id: id });
-      metrics.rateLimitHits.inc({ endpoint: 'reservations' });
       console.log(
         JSON.stringify({
           level: 'warn',
@@ -140,7 +137,6 @@ router.post('/:id/reservations', async (req: Request, res: Response) => {
       const projectedTotal = totalPurchased + totalHeld + quantity;
       if (projectedTotal > EVENT_PURCHASE_LIMIT) {
         await client.query('ROLLBACK');
-        metrics.purchaseLimitHit.inc({ event_id: id });
         console.log(
           JSON.stringify({
             level: 'warn',
@@ -210,7 +206,6 @@ router.post('/:id/reservations', async (req: Request, res: Response) => {
 
       if (quantity > available) {
         await client.query('ROLLBACK');
-        metrics.oversellAttempts.inc({ event_id: id, tier_id });
         await maybeAlertOversellSpike(id, tier_id, 10, 60);
         console.log(
           JSON.stringify({
@@ -249,8 +244,6 @@ router.post('/:id/reservations', async (req: Request, res: Response) => {
       const reservation = reservationResult.rows[0];
 
       await client.query('COMMIT');
-
-      metrics.reservationsCreated.inc({ event_id: id, tier_id });
 
       console.log(
         JSON.stringify({

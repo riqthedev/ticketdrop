@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import { uuidv4 } from '../utils/uuid';
 import { query, Event } from '../db';
 import redis from '../redis';
-import { metrics } from '../metrics';
 import { appConfig } from '../config';
 import { rateLimit } from '../utils/rateLimiter';
 
@@ -103,7 +102,6 @@ router.post('/:id/waiting-room/join', async (req: Request, res: Response) => {
     const rateKey = `join:${clientIp}:${id}`;
     const { allowed, retryAfter } = await rateLimit(rateKey, 10, 60);
     if (!allowed) {
-      metrics.rateLimitHits.inc({ endpoint: 'waiting_room_join' });
       res.setHeader('Retry-After', retryAfter ?? 60);
       return res.status(429).json({ 
         error: 'rate_limited',
@@ -163,8 +161,6 @@ router.post('/:id/waiting-room/join', async (req: Request, res: Response) => {
       const positionsAssignedKey = `positions_assigned:${id}`;
       await redis.del(positionsAssignedKey);
     }
-
-    metrics.queueJoins.inc({ event_id: id });
 
     console.log(
       JSON.stringify({

@@ -1,7 +1,6 @@
 import { createHmac } from 'crypto';
 import { uuidv4 } from '../utils/uuid';
 import { query, Reservation, Order, Ticket, getClient } from '../db';
-import { metrics } from '../metrics';
 
 const WORKER_INTERVAL_MS = 60_000; // 1 minute
 const QR_SECRET = process.env.QR_SECRET || 'ticketdrop-secret-key-change-in-production';
@@ -38,8 +37,6 @@ export async function runExpirationWorker() {
       // Track metrics per event and tier
       const eventCounts = new Map<string, number>();
       for (const row of expireResult.rows) {
-        metrics.reservationsExpired.inc({ event_id: row.event_id });
-        metrics.inventoryRestored.inc({ tier_id: row.tier_id });
         eventCounts.set(row.event_id, (eventCounts.get(row.event_id) || 0) + 1);
       }
 
@@ -99,7 +96,6 @@ export async function runExpirationWorker() {
 
       if (missing > 0) {
         totalTicketsRecovered += missing;
-        metrics.ticketsRecovered.inc({ event_id: order.event_id });
         console.log(JSON.stringify({
           level: 'info',
           msg: 'worker.tickets.repaired',
