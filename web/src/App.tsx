@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import UserView from './UserView';
 
-const API_BASE = 'http://localhost:4000';
+// Use relative URLs in production, localhost in development
+const API_BASE = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+  ? 'http://localhost:4000' 
+  : '';
 
 interface HealthResponse {
   status: string;
@@ -538,7 +541,7 @@ ${data.tiers.map((t: any) =>
           <h1>TicketDrop Admin Demo</h1>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <a
-              href="http://localhost:4000/metrics"
+              href="/metrics"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -568,7 +571,7 @@ ${data.tiers.map((t: any) =>
           </div>
         </div>
         <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
-          Prometheus metrics available at <code>http://localhost:4000/metrics</code>
+          Prometheus metrics available at <code>/metrics</code>
         </div>
       </header>
 

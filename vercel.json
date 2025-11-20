@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "builds": [
+  "buildCommand": "cd web && npm install && npm run build",
+  "outputDirectory": "web/dist",
+  "rewrites": [
     {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
+      "source": "/(health|events|checkout|admin|me|metrics)(.*)",
+      "destination": "/api/index"
+    },
     {
-      "src": "/(.*)",
-      "dest": "api/index.ts"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

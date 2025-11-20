@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = 'http://localhost:4000';
+// Use relative URLs in production, localhost in development
+const API_BASE = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+  ? 'http://localhost:4000' 
+  : '';
 
 interface Event {
   id: string;
@@ -1559,7 +1562,7 @@ export default function UserView() {
           alignItems: 'center',
         }}>
           <a
-            href="http://localhost:4000/metrics"
+            href="/metrics"
             target="_blank"
             rel="noopener noreferrer"
             style={{
