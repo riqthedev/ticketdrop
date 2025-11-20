@@ -5,11 +5,16 @@
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "../src",
+    // Fix for prom-client module resolution: baseUrl points to root where
+    // node_modules contains prom-client (from root package.json)
+    "baseUrl": "..",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    // Node module resolution will walk up from src/ to find node_modules
+    // in both api/node_modules and root node_modules
     "moduleResolution": "node",
     "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
   },

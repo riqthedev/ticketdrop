@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "cd api && npm install && cd ../web && npm install",
+  "installCommand": "npm install --legacy-peer-deps && cd api && npm install --legacy-peer-deps && cd ../web && npm install --legacy-peer-deps",
   "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/dist",
   "builds": [
@@ -10,24 +10,25 @@
     }
   ],
   "rewrites": [
+    // API routes - must come before catch-all to prevent frontend routing from intercepting
     {
-      "source": "/health/:path*",
+      "source": "/health",
       "destination": "/api/index"
     },
     {
-      "source": "/events/:path*",
+      "source": "/health/(.*)",
       "destination": "/api/index"
     },
     {
-      "source": "/checkout/:path*",
+      "source": "/events/(.*)",
       "destination": "/api/index"
     },
     {
-      "source": "/admin/:path*",
+      "source": "/checkout/(.*)",
       "destination": "/api/index"
     },
     {
-      "source": "/me/:path*",
+      "source": "/admin/(.*)",
       "destination": "/api/index"
     },
     {
@@ -35,9 +36,16 @@
       "destination": "/api/index"
     },
     {
+      "source": "/me/(.*)",
+      "destination": "/api/index"
+    },
+    {
       "source": "/metrics",
       "destination": "/api/index"
     },
+    // Frontend SPA routing - catch-all for all non-API routes
+    // This serves index.html for the root path and all frontend routes
+    // Vercel will serve static files from outputDirectory (web/dist) automatically
     {
       "source": "/(.*)",
       "destination": "/index.html"
