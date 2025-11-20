@@ -1,4 +1,13 @@
-import 'dotenv/config';
+// Only load dotenv in local development, not in Vercel
+// Vercel provides environment variables directly, no .env file needed
+if (typeof process.env.VERCEL === 'undefined' && !process.env.VERCEL_URL) {
+  try {
+    require('dotenv/config');
+  } catch (e) {
+    // dotenv not available, use environment variables directly
+    // This is fine - Vercel provides env vars directly
+  }
+}
 
 function getEnv(name: string, defaultValue?: string): string {
   const value = process.env[name] ?? defaultValue;

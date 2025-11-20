@@ -6,6 +6,14 @@ const pool = new Pool({
   user: process.env.DB_USER || 'ticketdrop',
   password: process.env.DB_PASSWORD || 'ticketdrop',
   database: process.env.DB_NAME || 'ticketdrop',
+  // Add connection timeout and error handling for serverless
+  connectionTimeoutMillis: 5000,
+  idleTimeoutMillis: 30000,
+});
+
+// Handle pool errors gracefully
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
 });
 
 export interface Event {

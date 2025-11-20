@@ -7,10 +7,14 @@ const redis = new Redis({
     const delay = Math.min(times * 50, 2000);
     return delay;
   },
+  // Add connection timeout for serverless
+  connectTimeout: 5000,
+  lazyConnect: true, // Don't connect immediately - connect on first use
 });
 
 redis.on('error', (err) => {
   console.error('Redis Client Error:', err);
+  // Don't crash the app if Redis fails - log and continue
 });
 
 redis.on('connect', () => {
