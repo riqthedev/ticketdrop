@@ -11,33 +11,7 @@ import ticketsRouter from './routes/tickets';
 import metricsRouter from './routes/metrics';
 import { requestLogger } from './middleware/requestLogger';
 import { startExpirationWorker } from './workers/expirationWorker';
-
-// Wrap config import in try-catch to handle missing env vars gracefully
-let appConfig;
-try {
-  const config = require('./config');
-  appConfig = config.appConfig;
-} catch (error: any) {
-  console.error('Error loading config:', error.message);
-  // Provide defaults if config fails
-  appConfig = {
-    port: parseInt(process.env.PORT || '4000', 10),
-    qrSecret: process.env.QR_SECRET || 'ticketdrop-secret-key-change-in-production',
-    waitingRoom: {
-      tokenTtlSeconds: 3600,
-      accessTtlSeconds: 180,
-      waveSize: 100,
-      waveAdvanceIntervalMs: 30000,
-    },
-    reservation: {
-      ttlMinutes: 3,
-      perEventLimit: 6,
-    },
-    worker: {
-      intervalMs: 60000,
-    },
-  };
-}
+import { appConfig } from './config';
 
 const app = express();
 const PORT = appConfig.port;
