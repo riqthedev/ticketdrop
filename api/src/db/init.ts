@@ -1,16 +1,13 @@
 import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { getClient } from './index';
 
 export async function initDatabase(): Promise<void> {
   const client = await getClient();
   
   try {
-    // Get the directory of the current file
-    const currentDir = typeof __dirname !== 'undefined' 
-      ? __dirname 
-      : dirname(fileURLToPath(import.meta.url));
+    // Get the directory of the current file (CommonJS mode)
+    const currentDir = __dirname;
     
     // Try multiple possible paths
     let sqlPath = join(currentDir, '../../db/init.sql');

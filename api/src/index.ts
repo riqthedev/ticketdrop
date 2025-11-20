@@ -18,7 +18,25 @@ const PORT = appConfig.port;
 
 // Enable CORS for all routes
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173', 
+      'http://localhost:3000', 
+      'http://127.0.0.1:5173',
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+      process.env.FRONTEND_URL,
+    ].filter(Boolean) as string[];
+    
+    // Allow all Vercel preview URLs
+    if (origin.includes('.vercel.app') || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
@@ -34,9 +52,15 @@ app.use('/checkout', checkoutRouter);
 app.use('/', ticketsRouter); // Mounted at root (for /me/tickets)
 app.use('/', metricsRouter);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only start server and worker if not in Vercel (serverless) environment
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+  
+  startExpirationWorker();
+}
 
-startExpirationWorker();
+// Export for Vercel serverless functions
+export default app;
 

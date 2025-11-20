@@ -1,0 +1,5 @@
+api/src/routes/**
+api/src/tests/**
+api/src/workers/**
+api/tests/**
+
