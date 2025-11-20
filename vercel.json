@@ -1,9 +1,14 @@
 {
   "version": 2,
+  "buildCommand": "cd api && npm install",
+  "installCommand": "cd api && npm install",
   "builds": [
     {
       "src": "api/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["api/src/**"]
+      }
     }
   ],
   "routes": [
@@ -11,6 +16,12 @@
       "src": "/(.*)",
       "dest": "api/index.ts"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
 }
 

@@ -78,7 +78,7 @@ export interface Ticket {
   created_at: Date;
 }
 
-export async function query<T extends QueryResultRow = any>(
+export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
