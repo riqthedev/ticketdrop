@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "npm install --legacy-peer-deps && cd api && npm install --legacy-peer-deps && cd ../web && npm install --legacy-peer-deps",
+  "installCommand": "npm install --legacy-peer-deps; cd api && npm install --legacy-peer-deps; cd ../web && npm install --legacy-peer-deps",
   "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/dist",
   "builds": [
