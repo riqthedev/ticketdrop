@@ -425,6 +425,13 @@ router.post('/confirm', async (req: Request, res: Response) => {
     }
 
     const session = sessionResult.rows[0];
+    
+    // Validate session was retrieved
+    if (!session) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(500).json({ error: 'Failed to retrieve checkout session' });
+    }
 
     // Check if order already exists (idempotency)
     const existingOrderResult = await client.query<Order>(
@@ -588,6 +595,16 @@ router.post('/confirm', async (req: Request, res: Response) => {
     // Simulate payment
     if (simulate === 'success') {
       // Payment successful: create order, update checkout session, update reservation
+      // Validate session has required properties
+      if (!session.quantity || !session.price_cents || !session.event_id || !session.tier_id || !session.user_token) {
+        await client.query('ROLLBACK');
+        client.release();
+        return res.status(500).json({ 
+          error: 'Invalid session data',
+          details: 'Session missing required properties'
+        });
+      }
+      
       const totalPriceCents = session.quantity * session.price_cents;
 
       // Create order
@@ -634,8 +651,24 @@ router.post('/confirm', async (req: Request, res: Response) => {
           );
         }
         
-        const ticketResults = await Promise.all(ticketPromises);
-        tickets = ticketResults.map(result => result.rows[0]);
+        try {
+          const ticketResults = await Promise.all(ticketPromises);
+          tickets = ticketResults
+            .map(result => result?.rows?.[0])
+            .filter((ticket): ticket is Ticket => ticket !== undefined);
+          
+          if (tickets.length !== session.quantity) {
+            throw new Error(`Failed to create all tickets. Expected ${session.quantity}, got ${tickets.length}`);
+          }
+        } catch (error: any) {
+          await client.query('ROLLBACK');
+          client.release();
+          console.error('Error creating tickets:', error);
+          return res.status(500).json({ 
+            error: 'Failed to create tickets', 
+            details: error.message 
+          });
+        }
       } else {
         // Tickets already exist, return them
         tickets = existingTicketsResult.rows;
