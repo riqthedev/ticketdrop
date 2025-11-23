@@ -1,15 +1,42 @@
 import { Pool, QueryResult, QueryResultRow } from 'pg';
+import { resolve } from 'path';
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  user: process.env.DB_USER || 'ticketdrop',
-  password: process.env.DB_PASSWORD || 'ticketdrop',
-  database: process.env.DB_NAME || 'ticketdrop',
-  // Add connection timeout and error handling for serverless
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-});
+// Load .env file if not in Vercel environment
+if (typeof process.env.VERCEL === 'undefined' && !process.env.VERCEL_URL) {
+  try {
+    // Load .env from project root (two levels up from src/db/)
+    const envPath = resolve(__dirname, '../../.env');
+    require('dotenv').config({ path: envPath });
+  } catch (e) {
+    // dotenv not available, use environment variables directly
+  }
+}
+
+const connectionString =
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.DATABASE_URL;
+
+const useSsl = process.env.PGSSLMODE === 'require' || process.env.NODE_ENV === 'production';
+
+const pool = new Pool(
+  connectionString
+    ? {
+        connectionString,
+        ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+        connectionTimeoutMillis: 5000,
+        idleTimeoutMillis: 30000,
+      }
+    : {
+        host: process.env.DB_HOST || process.env.POSTGRES_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || process.env.POSTGRES_PORT || '5432', 10),
+        user: process.env.DB_USER || process.env.POSTGRES_USER || 'ticketdrop',
+        password: process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD || 'ticketdrop',
+        database: process.env.DB_NAME || process.env.POSTGRES_DATABASE || 'ticketdrop',
+        connectionTimeoutMillis: 5000,
+        idleTimeoutMillis: 30000,
+      }
+);
 
 // Handle pool errors gracefully
 pool.on('error', (err) => {

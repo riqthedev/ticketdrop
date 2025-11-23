@@ -61,7 +61,27 @@ router.get('/', async (req: Request, res: Response) => {
     const publicEvents = result.rows.map(toPublicEvent);
     res.json(publicEvents);
   } catch (error: any) {
-    res.status(500).json({ error: 'Failed to fetch events', details: error.message });
+    console.error('Error fetching events:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      // Log connection info for debugging (without sensitive data)
+      hasConnectionString: !!(process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL),
+      hasDbHost: !!process.env.DB_HOST,
+    });
+    
+    // Provide more helpful error messages
+    let errorMessage = 'Failed to fetch events';
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      errorMessage = 'Database connection failed. Please check your database configuration.';
+    } else if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+      errorMessage = 'Database tables not found. Please initialize the database schema.';
+    }
+    
+    res.status(500).json({ 
+      error: errorMessage, 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 });
 
