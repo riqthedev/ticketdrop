@@ -17,6 +17,16 @@ const connectionString =
   process.env.POSTGRES_URL ||
   process.env.DATABASE_URL;
 
+// Debug logging (only in development)
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  console.log('Database connection check:', {
+    hasPostgresPrismaUrl: !!process.env.POSTGRES_PRISMA_URL,
+    hasPostgresUrl: !!process.env.POSTGRES_URL,
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    connectionStringLength: connectionString?.length || 0,
+  });
+}
+
 const useSsl = process.env.PGSSLMODE === 'require' || process.env.NODE_ENV === 'production';
 
 const pool = new Pool(

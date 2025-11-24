@@ -68,19 +68,28 @@ router.get('/', async (req: Request, res: Response) => {
       // Log connection info for debugging (without sensitive data)
       hasConnectionString: !!(process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL),
       hasDbHost: !!process.env.DB_HOST,
+      connectionStringPreview: process.env.DATABASE_URL ? 
+        process.env.DATABASE_URL.substring(0, 50) + '...' : 'NOT SET',
     });
     
     // Provide more helpful error messages
     let errorMessage = 'Failed to fetch events';
     if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
       errorMessage = 'Database connection failed. Please check your database configuration.';
+      if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.POSTGRES_PRISMA_URL) {
+        errorMessage += ' DATABASE_URL environment variable is not set.';
+      }
     } else if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
       errorMessage = 'Database tables not found. Please initialize the database schema.';
     }
     
     res.status(500).json({ 
-      error: errorMessage, 
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      error: errorMessage,
+      code: error.code,
+      // Show more details in production for debugging (but not sensitive data)
+      ...(process.env.VERCEL && { 
+        hint: 'Check Vercel function logs for details. Verify DATABASE_URL is set in environment variables.' 
+      })
     });
   }
 });
