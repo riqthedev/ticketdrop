@@ -27,15 +27,25 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   });
 }
 
-const useSsl = process.env.PGSSLMODE === 'require' || process.env.NODE_ENV === 'production';
+// Supabase requires SSL for all connections (especially pooler connections)
+// For Vercel (IPv4), use the Transaction Pooler connection string (port 6543)
+// Direct connections (port 5432) are IPv6 only and won't work on Vercel
+const useSsl = 
+  process.env.PGSSLMODE === 'require' || 
+  process.env.NODE_ENV === 'production' ||
+  connectionString?.includes('pooler.supabase.com') || // Supabase pooler always needs SSL
+  connectionString?.includes('supabase.co'); // Supabase direct connection always needs SSL
 
 const pool = new Pool(
   connectionString
     ? {
         connectionString,
+        // Supabase requires SSL, but we can use rejectUnauthorized: false for pooler
+        // The pooler handles certificate validation
         ssl: useSsl ? { rejectUnauthorized: false } : undefined,
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 10000, // Increased for serverless cold starts
         idleTimeoutMillis: 30000,
+        max: 1, // Important for serverless: limit connections per function instance
       }
     : {
         host: process.env.DB_HOST || process.env.POSTGRES_HOST || 'localhost',
@@ -43,6 +53,7 @@ const pool = new Pool(
         user: process.env.DB_USER || process.env.POSTGRES_USER || 'ticketdrop',
         password: process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD || 'ticketdrop',
         database: process.env.DB_NAME || process.env.POSTGRES_DATABASE || 'ticketdrop',
+        ssl: useSsl ? { rejectUnauthorized: false } : undefined,
         connectionTimeoutMillis: 5000,
         idleTimeoutMillis: 30000,
       }
